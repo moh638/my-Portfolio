@@ -1,63 +1,72 @@
-// Smooth scrolling
+// ===== Smooth scrolling (only for same-page anchors) =====
 document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-    anchor.addEventListener("click", function (e) {
-      e.preventDefault();
-      document.querySelector(this.getAttribute("href")).scrollIntoView({
-        behavior: "smooth"
-      });
-    });
+  anchor.addEventListener("click", function (e) {
+    const href = this.getAttribute("href");
+    if (!href || href === "#") return;
+    const target = document.querySelector(href);
+    if (!target) return;
+
+    e.preventDefault();
+    target.scrollIntoView({ behavior: "smooth", block: "start" });
   });
-  
-  // Back-to-top button
-  const scrollBtn = document.createElement("button");
-  scrollBtn.textContent = "↑";
-  scrollBtn.id = "scrollTop";
-  document.body.appendChild(scrollBtn);
-  
-  scrollBtn.style.position = "fixed";
-  scrollBtn.style.bottom = "30px";
-  scrollBtn.style.right = "30px";
-  scrollBtn.style.padding = "10px 14px";
-  scrollBtn.style.fontSize = "18px";
-  scrollBtn.style.borderRadius = "50%";
-  scrollBtn.style.background = "#0058ff";
-  scrollBtn.style.color = "white";
-  scrollBtn.style.border = "none";
-  scrollBtn.style.cursor = "pointer";
-  scrollBtn.style.display = "none";
-  scrollBtn.style.boxShadow = "0 4px 10px rgba(0,0,0,0.2)";
-  scrollBtn.title = "Back to top";
-  
-  window.addEventListener("scroll", () => {
-    if (window.scrollY > 400) scrollBtn.style.display = "block";
-    else scrollBtn.style.display = "none";
-  });
-  
-  scrollBtn.addEventListener("click", () => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  });
-  
-  // Dark Mode Toggle
-  const toggleBtn = document.getElementById("themeToggle");
-  toggleBtn.addEventListener("click", () => {
-    document.body.classList.toggle("dark");
-    toggleBtn.textContent = document.body.classList.contains("dark")
-      ? "☀️ Light Mode"
-      : "🌙 Dark Mode";
-  });
-  
-  // Fade-in Animation on Scroll
-  const fadeSections = document.querySelectorAll(".fade-section");
-  
-  const observer = new IntersectionObserver(entries => {
+});
+
+// ===== Scroll-to-top button =====
+const scrollBtn = document.getElementById("scrollTop");
+
+window.addEventListener("scroll", () => {
+  if (window.scrollY > 450) scrollBtn.style.display = "block";
+  else scrollBtn.style.display = "none";
+});
+
+scrollBtn.addEventListener("click", () => {
+  window.scrollTo({ top: 0, behavior: "smooth" });
+});
+
+// ===== Theme toggle with persistence =====
+const toggleBtn = document.getElementById("themeToggle");
+
+function setTheme(mode) {
+  // mode: "dark" | "light"
+  if (mode === "light") {
+    document.body.classList.add("light");
+    toggleBtn.querySelector(".icon").textContent = "☀️";
+    toggleBtn.querySelector(".label").textContent = "Light";
+  } else {
+    document.body.classList.remove("light");
+    toggleBtn.querySelector(".icon").textContent = "🌙";
+    toggleBtn.querySelector(".label").textContent = "Dark";
+  }
+  localStorage.setItem("theme", mode);
+}
+
+// Initialize theme
+const savedTheme = localStorage.getItem("theme");
+if (savedTheme === "light" || savedTheme === "dark") {
+  setTheme(savedTheme);
+} else {
+  // Default to system preference
+  const prefersLight = window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches;
+  setTheme(prefersLight ? "light" : "dark");
+}
+
+toggleBtn.addEventListener("click", () => {
+  const isLight = document.body.classList.contains("light");
+  setTheme(isLight ? "dark" : "light");
+});
+
+// ===== Fade-in on scroll =====
+const fadeSections = document.querySelectorAll(".fade-section");
+
+const observer = new IntersectionObserver(
+  entries => {
     entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        entry.target.classList.add("visible");
-      }
+      if (entry.isIntersecting) entry.target.classList.add("visible");
     });
-  }, { threshold: 0.2 });
-  
-  fadeSections.forEach(section => observer.observe(section));
-  
-  console.log("✅ Portfolio with Dark Mode & Animations Loaded Successfully!");
-  
+  },
+  { threshold: 0.2 }
+);
+
+fadeSections.forEach(section => observer.observe(section));
+
+console.log("✅ Portfolio UI refreshed (modern) + Theme persistence loaded!");
